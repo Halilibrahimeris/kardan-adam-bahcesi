@@ -21,49 +21,11 @@ html, body {
   display: block;
   outline: none;
   background: #9cc4f0;
-  touch-action: none;
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* ---------- phones: ask for landscape ---------- */
-
-#rotate-note {
-  display: none;
-}
-
-@media (orientation: portrait) and (pointer: coarse) {
-  #rotate-note {
-    position: fixed;
-    inset: 0;
-    z-index: 30;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: radial-gradient(circle at 50% 30%, #4f8fe6 0%, #1e4aa8 55%, #0d1f4d 100%);
-    text-align: center;
-  }
-}
-
-.phone {
-  width: 54px;
-  height: 92px;
-  margin: 0 auto 14px;
-  border: 5px solid #fff;
-  border-radius: 12px;
-  animation: turn 2s ease-in-out infinite;
-}
-
-@keyframes turn {
-  0%, 30% { transform: rotate(0deg); }
-  60%, 100% { transform: rotate(-90deg); }
 }
 
 /* ---------- loading screen ---------- */
 
-#loader {
+#loader, #mobile-note {
   position: fixed;
   inset: 0;
   display: flex;
@@ -79,7 +41,7 @@ html, body {
   pointer-events: none;
 }
 
-#error-box[hidden], #debug-panel[hidden] {
+#mobile-note[hidden], #error-box[hidden], #debug-panel[hidden] {
   display: none;
 }
 
