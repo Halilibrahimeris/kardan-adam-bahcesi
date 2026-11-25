@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Kardan Adam Bahçesi</title>
+  <link rel="icon" href="TemplateData/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="TemplateData/style.css">
+</head>
+<body>
+  <div id="game">
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+  </div>
+
+  <div id="loader">
+    <div class="snow" aria-hidden="true"></div>
+    <div class="loader-card">
+      <div class="snowman" aria-hidden="true">
+        <span class="hat"></span>
+        <span class="head"><i class="eye l"></i><i class="eye r"></i><i class="nose"></i></span>
+        <span class="body"></span>
+        <span class="base"></span>
+      </div>
+      <h1>Kardan Adam Bahçesi</h1>
+      <p class="tagline">Kar topu yuvarla, kardan adamını kur ve süsle!</p>
+      <div class="bar"><div class="fill" id="progress-fill"></div><div class="ball" id="progress-ball"></div></div>
+      <p class="status" id="progress-text">Kar yağıyor... %0</p>
+      <p class="tip">İpucu: Oyunda <b>Esc</b> fareyi serbest bırakır, oyuna tıklayınca devam edersin.</p>
+    </div>
+  </div>
+
+  <div id="mobile-note" hidden>
+    <div class="loader-card">
+      <h2>Bilgisayarda oyna!</h2>
+      <p>Bu oyun klavye ve fare ile oynanır. Lütfen bir bilgisayardan aç.</p>
+    </div>
+  </div>
+
+  <div id="error-box" hidden></div>
+  <div id="debug-panel" hidden></div>
+
+  <button id="fullscreen-button" type="button" title="Tam ekran">⛶</button>
+
+  <script>
+    (function () {
+      var canvas = document.querySelector('#unity-canvas');
+      var loader = document.querySelector('#loader');
+      var fill = document.querySelector('#progress-fill');
+      var ball = document.querySelector('#progress-ball');
+      var text = document.querySelector('#progress-text');
+      var errorBox = document.querySelector('#error-box');
+      var debugPanel = document.querySelector('#debug-panel');
+      var debug = /[?&]debug=1/.test(location.search);
+
+      function showError(message) {
+        errorBox.hidden = false;
+        var line = document.createElement('div');
+        line.textContent = message;
+        errorBox.appendChild(line);
+      }
+
+      window.addEventListener('error', function (e) { showError('Hata: ' + (e.message || e)); });
+      window.addEventListener('unhandledrejection', function (e) {
+        var reason = e.reason && (e.reason.message || e.reason.name || e.reason);
+        if (String(reason).indexOf('pointer') >= 0 || String(reason).indexOf('Pointer') >= 0) {
+          return;
+        }
+        showError('Hata: ' + reason);
+      });
+
+      var isTouchOnly = matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches;
+      if (isTouchOnly) {
+        document.querySelector('#mobile-note').hidden = false;
+      }
+
+      // Keep keyboard focus on the game so WASD always works.
+      canvas.addEventListener('mousedown', function () { canvas.focus(); });
+      window.addEventListener('keydown', function (e) {
+        if ([' ', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].indexOf(e.key) >= 0 && document.activeElement === canvas) {
+          e.preventDefault();
+        }
+      });
+
+      document.querySelector('#fullscreen-button').addEventListener('click', function () {
+        var game = document.querySelector('#game');
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+        } else if (game.requestFullscreen) {
+          game.requestFullscreen().catch(function () { });
+        }
+        canvas.focus();
+      });
+
+      if (debug) {
+        debugPanel.hidden = false;
+        var frames = 0;
+        (function tick() { frames++; requestAnimationFrame(tick); })();
+        setInterval(function () {
+          var lock = window.KardanAdamLock;
+          debugPanel.textContent =
+            'FPS ~' + frames + ' | kilit isteniyor: ' + (lock ? lock.want : '?') +
+            ' | kilitli: ' + (document.pointerLockElement === canvas) +
+            ' | odak: ' + (document.activeElement === canvas);
+          frames = 0;
+        }, 1000);
+      }
+
+      var buildUrl = 'Build';
+      var config = {
+        dataUrl: buildUrl + '/WebGL.data.unityweb',
+        frameworkUrl: buildUrl + '/WebGL.framework.js.unityweb',
+        codeUrl: buildUrl + '/WebGL.wasm.unityweb',
+        streamingAssetsUrl: 'StreamingAssets',
+        companyName: "DefaultCompany",
+        productName: "Kardan Adam Bahçesi",
+        productVersion: "0.1.0",
+        devicePixelRatio: Math.min(window.devicePixelRatio || 1, 1.5),
+        showBanner: function (message, type) {
+          if (type === 'error') {
+            showError(message);
+          } else if (debug) {
+            console.warn('[Unity] ' + message);
+          }
+        }
+      };
+
+      var script = document.createElement('script');
+      script.src = buildUrl + '/WebGL.loader.js';
+      script.onload = function () {
+        createUnityInstance(canvas, config, function (progress) {
+          var pct = Math.round(progress * 100);
+          fill.style.width = pct + '%';
+          ball.style.left = 'calc(' + pct + '% - 14px)';
+          text.textContent = (pct < 100 ? 'Kar yağıyor... %' : 'Kardan adamlar hazırlanıyor... %') + pct;
+        }).then(function (instance) {
+          window.unityInstance = instance;
+          loader.classList.add('done');
+          setTimeout(function () { loader.remove(); }, 700);
+          canvas.focus();
+        }).catch(function (message) {
+          showError('Oyun yüklenemedi: ' + message);
+        });
+      };
+      script.onerror = function () { showError('Oyun dosyaları bulunamadı (Build klasörü eksik olabilir).'); };
+      document.body.appendChild(script);
+    })();
+  </script>
+</body>
+</html>
