@@ -29,10 +29,11 @@
     </div>
   </div>
 
-  <div id="mobile-note" hidden>
+  <div id="rotate-note">
     <div class="loader-card">
-      <h2>Bilgisayarda oyna!</h2>
-      <p>Bu oyun klavye ve fare ile oynanır. Lütfen bir bilgisayardan aç.</p>
+      <div class="phone" aria-hidden="true"></div>
+      <h2>Telefonu yan çevir!</h2>
+      <p>Kardan Adam Bahçesi yatay ekranda daha eğlenceli.</p>
     </div>
   </div>
 
@@ -70,7 +71,10 @@
 
       var isTouchOnly = matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches;
       if (isTouchOnly) {
-        document.querySelector('#mobile-note').hidden = false;
+        document.body.classList.add('touch');
+        // Long-press menus and double-tap zoom get in the way of the on-screen controls.
+        document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+        document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
       }
 
       // Keep keyboard focus on the game so WASD always works.
@@ -107,14 +111,14 @@
 
       var buildUrl = 'Build';
       var config = {
-        dataUrl: buildUrl + '/WebGL.data.unityweb',
-        frameworkUrl: buildUrl + '/WebGL.framework.js.unityweb',
-        codeUrl: buildUrl + '/WebGL.wasm.unityweb',
+        dataUrl: buildUrl + '/35f1a847278afd4e41e65612b54a6cd8.data.unityweb',
+        frameworkUrl: buildUrl + '/26f1c57d3a95e1b4a1dfe0d6f8735659.framework.js.unityweb',
+        codeUrl: buildUrl + '/dc92e6a61beb1d003f14561a3973105c.wasm.unityweb',
         streamingAssetsUrl: 'StreamingAssets',
         companyName: "DefaultCompany",
         productName: "Kardan Adam Bahçesi",
         productVersion: "0.1.0",
-        devicePixelRatio: Math.min(window.devicePixelRatio || 1, 1.5),
+        devicePixelRatio: Math.min(window.devicePixelRatio || 1, isTouchOnly ? 1.25 : 1.5),
         showBanner: function (message, type) {
           if (type === 'error') {
             showError(message);
@@ -125,7 +129,7 @@
       };
 
       var script = document.createElement('script');
-      script.src = buildUrl + '/WebGL.loader.js';
+      script.src = buildUrl + '/8bc71cb2b3615bf8746ffeabd3da73e0.loader.js';
       script.onload = function () {
         createUnityInstance(canvas, config, function (progress) {
           var pct = Math.round(progress * 100);
